@@ -24,6 +24,7 @@ import { getErrorMessage } from "../api/client";
 import type { DataRoom } from "../api/types";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
+import { ItemNameWithCounts } from "../components/ItemNameWithCounts";
 import { ListPagination } from "../components/ListPagination";
 import { NameDialog } from "../components/NameDialog";
 import {
@@ -45,10 +46,9 @@ type DialogState =
 const rowLinkStyle = {
   display: "inline-flex",
   alignItems: "center",
-  gap: 10,
   color: "inherit",
   textDecoration: "none",
-  fontWeight: 500,
+  maxWidth: "100%",
 } as const;
 
 export function HomePage() {
@@ -171,8 +171,17 @@ export function HomePage() {
                         search={{ page: 1 }}
                         style={rowLinkStyle}
                       >
-                        <MeetingRoomOutlinedIcon color="primary" fontSize="small" />
-                        <span>{room.name}</span>
+                        <ItemNameWithCounts
+                          icon={
+                            <MeetingRoomOutlinedIcon
+                              color="primary"
+                              fontSize="small"
+                            />
+                          }
+                          name={room.name}
+                          folderCount={room.folderCount}
+                          fileCount={room.fileCount}
+                        />
                       </Link>
                     </TableCell>
                     <TableCell>{formatDate(room.updatedAt)}</TableCell>

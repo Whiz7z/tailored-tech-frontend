@@ -37,6 +37,7 @@ import { formatBytes, formatDate } from "../utils/format";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { EmptyState } from "./EmptyState";
 import { FolderBreadcrumbs } from "./FolderBreadcrumbs";
+import { ItemNameWithCounts } from "./ItemNameWithCounts";
 import { ListPagination } from "./ListPagination";
 import { NameDialog } from "./NameDialog";
 
@@ -57,10 +58,9 @@ type DialogState =
 const rowLinkStyle = {
   display: "inline-flex",
   alignItems: "center",
-  gap: 10,
   color: "inherit",
   textDecoration: "none",
-  fontWeight: 500,
+  maxWidth: "100%",
 } as const;
 
 export function ContentsBrowser({ roomId, folderId, page }: ContentsBrowserProps) {
@@ -290,8 +290,14 @@ export function ContentsBrowser({ roomId, folderId, page }: ContentsBrowserProps
                         search={{ page: 1 }}
                         style={rowLinkStyle}
                       >
-                        <FolderOutlinedIcon color="primary" fontSize="small" />
-                        <span>{folder.name}</span>
+                        <ItemNameWithCounts
+                          icon={
+                            <FolderOutlinedIcon color="primary" fontSize="small" />
+                          }
+                          name={folder.name}
+                          folderCount={folder.folderCount}
+                          fileCount={folder.fileCount}
+                        />
                       </Link>
                     </TableCell>
                     <TableCell>Folder</TableCell>

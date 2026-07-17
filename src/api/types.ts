@@ -39,6 +39,10 @@ export interface DataRoom {
   name: string;
   createdAt: string;
   updatedAt: string;
+  /** Direct child folders at room root (one level deep) */
+  folderCount: number;
+  /** Direct files at room root (one level deep) */
+  fileCount: number;
 }
 
 export interface Folder {
@@ -48,6 +52,10 @@ export interface Folder {
   parentId: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Direct child folders (one level deep) */
+  folderCount: number;
+  /** Direct files in this folder (one level deep) */
+  fileCount: number;
 }
 
 export interface FileItem {

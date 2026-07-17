@@ -59,7 +59,9 @@ export function isDataRoom(value: unknown): value is DataRoom {
     isString(item.id) &&
     isString(item.name) &&
     isString(item.createdAt) &&
-    isString(item.updatedAt)
+    isString(item.updatedAt) &&
+    isNumber(item.folderCount) &&
+    isNumber(item.fileCount)
   );
 }
 
@@ -72,7 +74,9 @@ export function isFolder(value: unknown): value is Folder {
     isString(item.dataRoomId) &&
     isNullableString(item.parentId) &&
     isString(item.createdAt) &&
-    isString(item.updatedAt)
+    isString(item.updatedAt) &&
+    isNumber(item.folderCount) &&
+    isNumber(item.fileCount)
   );
 }
 
