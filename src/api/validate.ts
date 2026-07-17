@@ -5,6 +5,8 @@ import type {
   FileItem,
   Folder,
   FolderContents,
+  PaginatedResponse,
+  PaginationMeta,
 } from "./types";
 
 function invalid(message: string): never {
@@ -40,6 +42,10 @@ function isString(value: unknown): value is string {
 
 function isNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function isBoolean(value: unknown): value is boolean {
+  return typeof value === "boolean";
 }
 
 function isNullableString(value: unknown): value is string | null {
@@ -95,6 +101,19 @@ export function isBreadcrumbItem(value: unknown): value is BreadcrumbItem {
   );
 }
 
+export function isPaginationMeta(value: unknown): value is PaginationMeta {
+  if (value === null || typeof value !== "object") return false;
+  const item = value as Record<string, unknown>;
+  return (
+    isNumber(item.page) &&
+    isNumber(item.pageSize) &&
+    isNumber(item.totalItems) &&
+    isNumber(item.totalPages) &&
+    isBoolean(item.hasNextPage) &&
+    isBoolean(item.hasPreviousPage)
+  );
+}
+
 export function parseDataRoom(value: unknown): DataRoom {
   if (!isDataRoom(value)) {
     invalid("Invalid data room response from API.");
@@ -102,8 +121,21 @@ export function parseDataRoom(value: unknown): DataRoom {
   return value;
 }
 
-export function parseDataRooms(value: unknown): DataRoom[] {
-  return assertArray(value, "data rooms list", isDataRoom);
+export function parsePaginatedDataRooms(
+  value: unknown,
+): PaginatedResponse<DataRoom> {
+  assertObject(value, "paginated data rooms");
+  return {
+    items: assertArray(value.items, "data rooms list", isDataRoom),
+    pagination: parsePaginationMeta(value.pagination),
+  };
+}
+
+export function parsePaginationMeta(value: unknown): PaginationMeta {
+  if (!isPaginationMeta(value)) {
+    invalid("Invalid pagination metadata from API.");
+  }
+  return value;
 }
 
 export function parseFolder(value: unknown): Folder {
@@ -126,6 +158,7 @@ export function parseFolderContents(value: unknown): FolderContents {
     folders: assertArray(value.folders, "folders", isFolder),
     files: assertArray(value.files, "files", isFileItem),
     breadcrumb: assertArray(value.breadcrumb, "breadcrumb", isBreadcrumbItem),
+    pagination: parsePaginationMeta(value.pagination),
   };
 }
 

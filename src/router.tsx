@@ -10,6 +10,7 @@ import { RouteError } from "./components/RouteError";
 import { FileViewerPage } from "./pages/FileViewerPage";
 import { HomePage } from "./pages/HomePage";
 import { RoomPage } from "./pages/RoomPage";
+import { parsePageSearch } from "./utils/search";
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -25,24 +26,29 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
+  validateSearch: parsePageSearch,
   component: HomePage,
 });
 
 const roomRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/rooms/$roomId",
+  validateSearch: parsePageSearch,
   component: function RoomRoute() {
     const { roomId } = roomRoute.useParams();
-    return <RoomPage roomId={roomId} />;
+    const { page } = roomRoute.useSearch();
+    return <RoomPage roomId={roomId} page={page} />;
   },
 });
 
 const folderRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/rooms/$roomId/folders/$folderId",
+  validateSearch: parsePageSearch,
   component: function FolderRoute() {
     const { roomId, folderId } = folderRoute.useParams();
-    return <RoomPage roomId={roomId} folderId={folderId} />;
+    const { page } = folderRoute.useSearch();
+    return <RoomPage roomId={roomId} folderId={folderId} page={page} />;
   },
 });
 

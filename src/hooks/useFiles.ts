@@ -21,7 +21,7 @@ export function useUploadFile(roomId: string, folderId: string | null) {
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.contents(roomId, folderId),
+        queryKey: queryKeys.contents.byLocation(roomId, folderId),
       });
     },
   });
@@ -34,7 +34,7 @@ export function useRenameFile(roomId: string, folderId: string | null) {
       filesApi.renameFile(id, name),
     onSuccess: (file) => {
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.contents(roomId, folderId),
+        queryKey: queryKeys.contents.byLocation(roomId, folderId),
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.file(file.id) });
     },
@@ -47,7 +47,7 @@ export function useDeleteFile(roomId: string, folderId: string | null) {
     mutationFn: (id: string) => filesApi.deleteFile(id),
     onSuccess: (_data, id) => {
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.contents(roomId, folderId),
+        queryKey: queryKeys.contents.byLocation(roomId, folderId),
       });
       void queryClient.removeQueries({ queryKey: queryKeys.file(id) });
     },

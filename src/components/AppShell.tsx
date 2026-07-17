@@ -1,10 +1,26 @@
-import { AppBar, Box, Container, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, Container, Toolbar } from "@mui/material";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 
 interface AppShellProps {
   children: ReactNode;
 }
+
+const brandLinkStyle = {
+  fontFamily: '"Source Serif 4", Georgia, serif',
+  fontWeight: 700,
+  color: "inherit",
+  textDecoration: "none",
+  letterSpacing: "-0.02em",
+  fontSize: "1.15rem",
+} as const;
+
+const navLinkStyle = {
+  color: "inherit",
+  textDecoration: "none",
+  fontSize: 14,
+  fontWeight: 500,
+} as const;
 
 export function AppShell({ children }: AppShellProps) {
   return (
@@ -27,32 +43,13 @@ export function AppShell({ children }: AppShellProps) {
         }}
       >
         <Toolbar sx={{ gap: 2 }}>
-          <Typography
-            component={Link}
-            to="/"
-            variant="h6"
-            sx={{
-              fontFamily: '"Source Serif 4", Georgia, serif',
-              fontWeight: 700,
-              color: "inherit",
-              textDecoration: "none",
-              letterSpacing: "-0.02em",
-            }}
-          >
+          <Link to="/" search={{ page: 1 }} style={brandLinkStyle}>
             Acme Data Room
-          </Typography>
-          <Box
-            component={Link}
-            to="/"
-            sx={{
-              color: "text.secondary",
-              textDecoration: "none",
-              fontSize: 14,
-              fontWeight: 500,
-              "&:hover": { color: "text.primary" },
-            }}
-          >
-            All data rooms
+          </Link>
+          <Box sx={{ color: "text.secondary", "&:hover": { color: "text.primary" } }}>
+            <Link to="/" search={{ page: 1 }} style={navLinkStyle}>
+              All data rooms
+            </Link>
           </Box>
         </Toolbar>
       </AppBar>

@@ -79,7 +79,7 @@ export function FileViewerPage({ roomId, fileId }: FileViewerPageProps) {
   return (
     <Box>
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
-        <Link to="/" style={{ textDecoration: "none" }}>
+        <Link to="/" search={{ page: 1 }} style={{ textDecoration: "none" }}>
           <Button startIcon={<ArrowBackIcon />} size="small">
             All data rooms
           </Button>
@@ -88,6 +88,7 @@ export function FileViewerPage({ roomId, fileId }: FileViewerPageProps) {
           <Link
             to="/rooms/$roomId/folders/$folderId"
             params={{ roomId, folderId: file.folderId }}
+            search={{ page: 1 }}
             style={{ textDecoration: "none" }}
           >
             <Button startIcon={<ArrowBackIcon />} size="small">
@@ -98,6 +99,7 @@ export function FileViewerPage({ roomId, fileId }: FileViewerPageProps) {
           <Link
             to="/rooms/$roomId"
             params={{ roomId }}
+            search={{ page: 1 }}
             style={{ textDecoration: "none" }}
           >
             <Button startIcon={<ArrowBackIcon />} size="small">

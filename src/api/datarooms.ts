@@ -1,14 +1,27 @@
 import { api } from "./client";
-import type { DataRoom, FolderContents } from "./types";
+import type {
+  DataRoom,
+  FolderContents,
+  PaginatedResponse,
+  PaginationParams,
+} from "./types";
+import { DEFAULT_PAGE_SIZE } from "./types";
 import {
   parseDataRoom,
-  parseDataRooms,
   parseFolderContents,
+  parsePaginatedDataRooms,
 } from "./validate";
 
-export async function listDataRooms(): Promise<DataRoom[]> {
-  const { data } = await api.get("/datarooms");
-  return parseDataRooms(data);
+export async function listDataRooms(
+  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE },
+): Promise<PaginatedResponse<DataRoom>> {
+  const { data } = await api.get("/datarooms", {
+    params: {
+      page: params.page,
+      pageSize: params.pageSize,
+    },
+  });
+  return parsePaginatedDataRooms(data);
 }
 
 export async function getDataRoom(id: string): Promise<DataRoom> {
@@ -33,9 +46,14 @@ export async function deleteDataRoom(id: string): Promise<void> {
 export async function getContents(
   roomId: string,
   folderId: string | null,
+  params: PaginationParams = { page: 1, pageSize: DEFAULT_PAGE_SIZE },
 ): Promise<FolderContents> {
   const { data } = await api.get(`/datarooms/${roomId}/contents`, {
-    params: folderId ? { folderId } : undefined,
+    params: {
+      ...(folderId ? { folderId } : {}),
+      page: params.page,
+      pageSize: params.pageSize,
+    },
   });
   return parseFolderContents(data);
 }

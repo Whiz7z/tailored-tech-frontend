@@ -17,13 +17,14 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getErrorMessage } from "../api/client";
 import type { DataRoom } from "../api/types";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { EmptyState } from "../components/EmptyState";
+import { ListPagination } from "../components/ListPagination";
 import { NameDialog } from "../components/NameDialog";
 import {
   useCreateDataRoom,
@@ -32,6 +33,8 @@ import {
   useRenameDataRoom,
 } from "../hooks/useDataRooms";
 import { formatDate } from "../utils/format";
+
+const routeApi = getRouteApi("/");
 
 type DialogState =
   | { type: "create" }
@@ -49,22 +52,40 @@ const rowLinkStyle = {
 } as const;
 
 export function HomePage() {
-  const navigate = useNavigate();
+  const navigate = useNavigate({ from: "/" });
+  const { page } = routeApi.useSearch();
   const { enqueueSnackbar } = useSnackbar();
   const [dialog, setDialog] = useState<DialogState>(null);
   const [dialogError, setDialogError] = useState<string | null>(null);
 
-  const roomsQuery = useDataRooms();
+  const roomsQuery = useDataRooms(page);
   const createRoom = useCreateDataRoom();
   const renameRoom = useRenameDataRoom();
   const deleteRoom = useDeleteDataRoom();
+
+  const pagination = roomsQuery.data?.pagination;
+
+  useEffect(() => {
+    if (pagination && pagination.page !== page) {
+      void navigate({
+        search: { page: pagination.page },
+        replace: true,
+      });
+    }
+  }, [navigate, page, pagination]);
 
   const closeDialog = () => {
     setDialog(null);
     setDialogError(null);
   };
 
-  if (roomsQuery.isLoading) {
+  const setPage = (nextPage: number) => {
+    void navigate({
+      search: { page: nextPage },
+    });
+  };
+
+  if (roomsQuery.isLoading && !roomsQuery.data) {
     return (
       <Box sx={{ display: "grid", placeItems: "center", py: 10 }}>
         <CircularProgress />
@@ -72,11 +93,12 @@ export function HomePage() {
     );
   }
 
-  if (roomsQuery.isError) {
+  if (roomsQuery.isError && !roomsQuery.data) {
     return <Alert severity="error">{getErrorMessage(roomsQuery.error)}</Alert>;
   }
 
-  const rooms = Array.isArray(roomsQuery.data) ? roomsQuery.data : [];
+  const rooms = roomsQuery.data?.items ?? [];
+  const totalItems = pagination?.totalItems ?? 0;
 
   return (
     <Box>
@@ -108,7 +130,7 @@ export function HomePage() {
         </Button>
       </Box>
 
-      {rooms.length === 0 ? (
+      {totalItems === 0 ? (
         <EmptyState
           title="No data rooms yet"
           description="Create your first data room to start uploading folders and PDF documents for due diligence."
@@ -119,61 +141,73 @@ export function HomePage() {
           }
         />
       ) : (
-        <TableContainer
-          sx={{
-            bgcolor: "background.paper",
-            border: "1px solid",
-            borderColor: "divider",
-            borderRadius: 2,
-          }}
-        >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell width={200}>Updated</TableCell>
-                <TableCell align="right" width={120}>
-                  Actions
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rooms.map((room) => (
-                <TableRow key={room.id} hover>
-                  <TableCell>
-                    <Link
-                      to="/rooms/$roomId"
-                      params={{ roomId: room.id }}
-                      style={rowLinkStyle}
-                    >
-                      <MeetingRoomOutlinedIcon color="primary" fontSize="small" />
-                      <span>{room.name}</span>
-                    </Link>
-                  </TableCell>
-                  <TableCell>{formatDate(room.updatedAt)}</TableCell>
-                  <TableCell align="right">
-                    <Tooltip title="Rename">
-                      <IconButton
-                        size="small"
-                        onClick={() => setDialog({ type: "rename", room })}
-                      >
-                        <DriveFileRenameOutlineIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete">
-                      <IconButton
-                        size="small"
-                        onClick={() => setDialog({ type: "delete", room })}
-                      >
-                        <DeleteOutlinedIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+        <>
+          <TableContainer
+            sx={{
+              bgcolor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              opacity: roomsQuery.isFetching ? 0.85 : 1,
+            }}
+          >
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell width={200}>Updated</TableCell>
+                  <TableCell align="right" width={120}>
+                    Actions
                   </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {rooms.map((room) => (
+                  <TableRow key={room.id} hover>
+                    <TableCell>
+                      <Link
+                        to="/rooms/$roomId"
+                        params={{ roomId: room.id }}
+                        search={{ page: 1 }}
+                        style={rowLinkStyle}
+                      >
+                        <MeetingRoomOutlinedIcon color="primary" fontSize="small" />
+                        <span>{room.name}</span>
+                      </Link>
+                    </TableCell>
+                    <TableCell>{formatDate(room.updatedAt)}</TableCell>
+                    <TableCell align="right">
+                      <Tooltip title="Rename">
+                        <IconButton
+                          size="small"
+                          onClick={() => setDialog({ type: "rename", room })}
+                        >
+                          <DriveFileRenameOutlineIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton
+                          size="small"
+                          onClick={() => setDialog({ type: "delete", room })}
+                        >
+                          <DeleteOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {pagination && (
+            <ListPagination
+              pagination={pagination}
+              onPageChange={setPage}
+              isFetching={roomsQuery.isFetching}
+            />
+          )}
+        </>
       )}
 
       <NameDialog
@@ -193,6 +227,7 @@ export function HomePage() {
             void navigate({
               to: "/rooms/$roomId",
               params: { roomId: room.id },
+              search: { page: 1 },
             });
           } catch (error) {
             setDialogError(getErrorMessage(error));

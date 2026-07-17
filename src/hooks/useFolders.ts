@@ -13,7 +13,7 @@ export function useCreateFolder(roomId: string, folderId: string | null) {
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.contents(roomId, folderId),
+        queryKey: queryKeys.contents.byLocation(roomId, folderId),
       });
     },
   });
@@ -26,7 +26,7 @@ export function useRenameFolder(roomId: string, folderId: string | null) {
       foldersApi.renameFolder(id, name),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.contents(roomId, folderId),
+        queryKey: queryKeys.contents.byLocation(roomId, folderId),
       });
     },
   });
@@ -38,7 +38,7 @@ export function useDeleteFolder(roomId: string, folderId: string | null) {
     mutationFn: (id: string) => foldersApi.deleteFolder(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.contents(roomId, folderId),
+        queryKey: queryKeys.contents.byLocation(roomId, folderId),
       });
     },
   });

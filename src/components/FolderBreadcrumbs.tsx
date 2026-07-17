@@ -18,7 +18,7 @@ export function FolderBreadcrumbs({ roomId, items }: FolderBreadcrumbsProps) {
 
   return (
     <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-      <Link to="/" style={linkSx}>
+      <Link to="/" search={{ page: 1 }} style={linkSx}>
         Data Rooms
       </Link>
       {crumbs.map((item, index) => {
@@ -35,7 +35,13 @@ export function FolderBreadcrumbs({ roomId, items }: FolderBreadcrumbsProps) {
 
         if (item.type === "room") {
           return (
-            <Link key={key} to="/rooms/$roomId" params={{ roomId }} style={linkSx}>
+            <Link
+              key={key}
+              to="/rooms/$roomId"
+              params={{ roomId }}
+              search={{ page: 1 }}
+              style={linkSx}
+            >
               {item.name}
             </Link>
           );
@@ -54,6 +60,7 @@ export function FolderBreadcrumbs({ roomId, items }: FolderBreadcrumbsProps) {
             key={key}
             to="/rooms/$roomId/folders/$folderId"
             params={{ roomId, folderId: item.id }}
+            search={{ page: 1 }}
             style={linkSx}
           >
             {item.name}

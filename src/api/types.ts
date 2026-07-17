@@ -13,6 +13,27 @@ export interface ApiErrorBody {
   };
 }
 
+export const DEFAULT_PAGE_SIZE = 5;
+
+export interface PaginationParams {
+  page: number;
+  pageSize: number;
+}
+
+export interface PaginationMeta {
+  page: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  pagination: PaginationMeta;
+}
+
 export interface DataRoom {
   id: string;
   name: string;
@@ -50,4 +71,5 @@ export interface FolderContents {
   folders: Folder[];
   files: FileItem[];
   breadcrumb: BreadcrumbItem[];
+  pagination: PaginationMeta;
 }

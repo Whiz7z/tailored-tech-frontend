@@ -22,7 +22,7 @@ import {
 } from "@mui/material";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
-import { useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { ApiError, getErrorMessage } from "../api/client";
 import type { FileItem, Folder } from "../api/types";
 import { ensureArray } from "../api/validate";
@@ -37,11 +37,13 @@ import { formatBytes, formatDate } from "../utils/format";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { EmptyState } from "./EmptyState";
 import { FolderBreadcrumbs } from "./FolderBreadcrumbs";
+import { ListPagination } from "./ListPagination";
 import { NameDialog } from "./NameDialog";
 
 interface ContentsBrowserProps {
   roomId: string;
   folderId: string | null;
+  page: number;
 }
 
 type DialogState =
@@ -61,20 +63,58 @@ const rowLinkStyle = {
   fontWeight: 500,
 } as const;
 
-export function ContentsBrowser({ roomId, folderId }: ContentsBrowserProps) {
+export function ContentsBrowser({ roomId, folderId, page }: ContentsBrowserProps) {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dialog, setDialog] = useState<DialogState>(null);
   const [dialogError, setDialogError] = useState<string | null>(null);
 
-  const contentsQuery = useFolderContents(roomId, folderId);
+  const contentsQuery = useFolderContents(roomId, folderId, page);
   const createFolder = useCreateFolder(roomId, folderId);
   const renameFolder = useRenameFolder(roomId, folderId);
   const deleteFolder = useDeleteFolder(roomId, folderId);
   const uploadFile = useUploadFile(roomId, folderId);
   const renameFile = useRenameFile(roomId, folderId);
   const deleteFile = useDeleteFile(roomId, folderId);
+
+  const pagination = contentsQuery.data?.pagination;
+
+  useEffect(() => {
+    if (pagination && pagination.page !== page) {
+      if (folderId) {
+        void navigate({
+          to: "/rooms/$roomId/folders/$folderId",
+          params: { roomId, folderId },
+          search: { page: pagination.page },
+          replace: true,
+        });
+      } else {
+        void navigate({
+          to: "/rooms/$roomId",
+          params: { roomId },
+          search: { page: pagination.page },
+          replace: true,
+        });
+      }
+    }
+  }, [navigate, page, pagination, roomId, folderId]);
+
+  const setPage = (nextPage: number) => {
+    if (folderId) {
+      void navigate({
+        to: "/rooms/$roomId/folders/$folderId",
+        params: { roomId, folderId },
+        search: { page: nextPage },
+      });
+    } else {
+      void navigate({
+        to: "/rooms/$roomId",
+        params: { roomId },
+        search: { page: nextPage },
+      });
+    }
+  };
 
   const closeDialog = () => {
     setDialog(null);
@@ -114,7 +154,7 @@ export function ContentsBrowser({ roomId, folderId }: ContentsBrowserProps) {
     }
   };
 
-  if (contentsQuery.isLoading) {
+  if (contentsQuery.isLoading && !contentsQuery.data) {
     return (
       <Box sx={{ display: "grid", placeItems: "center", py: 10 }}>
         <CircularProgress />
@@ -122,7 +162,7 @@ export function ContentsBrowser({ roomId, folderId }: ContentsBrowserProps) {
     );
   }
 
-  if (contentsQuery.isError) {
+  if (contentsQuery.isError && !contentsQuery.data) {
     return (
       <Alert severity="error">{getErrorMessage(contentsQuery.error)}</Alert>
     );
@@ -140,12 +180,13 @@ export function ContentsBrowser({ roomId, folderId }: ContentsBrowserProps) {
   const safeFolders = ensureArray(folders);
   const safeFiles = ensureArray(files);
   const safeBreadcrumb = ensureArray(breadcrumb);
-  const isEmpty = safeFolders.length === 0 && safeFiles.length === 0;
+  const totalItems = pagination?.totalItems ?? 0;
+  const isEmpty = totalItems === 0;
 
   return (
     <Box>
       <Box sx={{ mb: 1 }}>
-        <Link to="/" style={{ textDecoration: "none" }}>
+        <Link to="/" search={{ page: 1 }} style={{ textDecoration: "none" }}>
           <Button startIcon={<ArrowBackIcon />} size="small">
             All data rooms
           </Button>
@@ -217,108 +258,123 @@ export function ContentsBrowser({ roomId, folderId }: ContentsBrowserProps) {
           }
         />
       ) : (
-        <TableContainer
-          sx={{
-            bgcolor: "background.paper",
-            border: "1px solid",
-            borderColor: "divider",
-            borderRadius: 2,
-          }}
-        >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell width={120}>Type</TableCell>
-                <TableCell width={120}>Size</TableCell>
-                <TableCell width={180}>Updated</TableCell>
-                <TableCell align="right" width={120}>
-                  Actions
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {safeFolders.map((folder) => (
-                <TableRow key={folder.id} hover>
-                  <TableCell>
-                    <Link
-                      to="/rooms/$roomId/folders/$folderId"
-                      params={{ roomId, folderId: folder.id }}
-                      style={rowLinkStyle}
-                    >
-                      <FolderOutlinedIcon color="primary" fontSize="small" />
-                      <span>{folder.name}</span>
-                    </Link>
-                  </TableCell>
-                  <TableCell>Folder</TableCell>
-                  <TableCell>—</TableCell>
-                  <TableCell>{formatDate(folder.updatedAt)}</TableCell>
-                  <TableCell align="right">
-                    <Tooltip title="Rename">
-                      <IconButton
-                        size="small"
-                        onClick={() =>
-                          setDialog({ type: "rename-folder", item: folder })
-                        }
-                      >
-                        <DriveFileRenameOutlineIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete">
-                      <IconButton
-                        size="small"
-                        onClick={() =>
-                          setDialog({ type: "delete-folder", item: folder })
-                        }
-                      >
-                        <DeleteOutlinedIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+        <>
+          <TableContainer
+            sx={{
+              bgcolor: "background.paper",
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              opacity: contentsQuery.isFetching ? 0.85 : 1,
+            }}
+          >
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Name</TableCell>
+                  <TableCell width={120}>Type</TableCell>
+                  <TableCell width={120}>Size</TableCell>
+                  <TableCell width={180}>Updated</TableCell>
+                  <TableCell align="right" width={120}>
+                    Actions
                   </TableCell>
                 </TableRow>
-              ))}
-              {safeFiles.map((file) => (
-                <TableRow key={file.id} hover>
-                  <TableCell>
-                    <Link
-                      to="/rooms/$roomId/files/$fileId"
-                      params={{ roomId, fileId: file.id }}
-                      style={rowLinkStyle}
-                    >
-                      <DescriptionOutlinedIcon color="secondary" fontSize="small" />
-                      <span>{file.name}</span>
-                    </Link>
-                  </TableCell>
-                  <TableCell>PDF</TableCell>
-                  <TableCell>{formatBytes(file.size)}</TableCell>
-                  <TableCell>{formatDate(file.updatedAt)}</TableCell>
-                  <TableCell align="right">
-                    <Tooltip title="Rename">
-                      <IconButton
-                        size="small"
-                        onClick={() =>
-                          setDialog({ type: "rename-file", item: file })
-                        }
+              </TableHead>
+              <TableBody>
+                {safeFolders.map((folder) => (
+                  <TableRow key={folder.id} hover>
+                    <TableCell>
+                      <Link
+                        to="/rooms/$roomId/folders/$folderId"
+                        params={{ roomId, folderId: folder.id }}
+                        search={{ page: 1 }}
+                        style={rowLinkStyle}
                       >
-                        <DriveFileRenameOutlineIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Delete">
-                      <IconButton
-                        size="small"
-                        onClick={() =>
-                          setDialog({ type: "delete-file", item: file })
-                        }
+                        <FolderOutlinedIcon color="primary" fontSize="small" />
+                        <span>{folder.name}</span>
+                      </Link>
+                    </TableCell>
+                    <TableCell>Folder</TableCell>
+                    <TableCell>—</TableCell>
+                    <TableCell>{formatDate(folder.updatedAt)}</TableCell>
+                    <TableCell align="right">
+                      <Tooltip title="Rename">
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            setDialog({ type: "rename-folder", item: folder })
+                          }
+                        >
+                          <DriveFileRenameOutlineIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            setDialog({ type: "delete-folder", item: folder })
+                          }
+                        >
+                          <DeleteOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {safeFiles.map((file) => (
+                  <TableRow key={file.id} hover>
+                    <TableCell>
+                      <Link
+                        to="/rooms/$roomId/files/$fileId"
+                        params={{ roomId, fileId: file.id }}
+                        style={rowLinkStyle}
                       >
-                        <DeleteOutlinedIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                        <DescriptionOutlinedIcon
+                          color="secondary"
+                          fontSize="small"
+                        />
+                        <span>{file.name}</span>
+                      </Link>
+                    </TableCell>
+                    <TableCell>PDF</TableCell>
+                    <TableCell>{formatBytes(file.size)}</TableCell>
+                    <TableCell>{formatDate(file.updatedAt)}</TableCell>
+                    <TableCell align="right">
+                      <Tooltip title="Rename">
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            setDialog({ type: "rename-file", item: file })
+                          }
+                        >
+                          <DriveFileRenameOutlineIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete">
+                        <IconButton
+                          size="small"
+                          onClick={() =>
+                            setDialog({ type: "delete-file", item: file })
+                          }
+                        >
+                          <DeleteOutlinedIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+
+          {pagination && (
+            <ListPagination
+              pagination={pagination}
+              onPageChange={setPage}
+              isFetching={contentsQuery.isFetching}
+            />
+          )}
+        </>
       )}
 
       <NameDialog
@@ -426,11 +482,13 @@ export function ContentsBrowser({ roomId, folderId }: ContentsBrowserProps) {
                 void navigate({
                   to: "/rooms/$roomId/folders/$folderId",
                   params: { roomId, folderId },
+                  search: { page: 1 },
                 });
               } else {
                 void navigate({
                   to: "/rooms/$roomId",
                   params: { roomId },
+                  search: { page: 1 },
                 });
               }
             }
