@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 
-/** Debounce a changing value; useful for search-as-you-type URL updates. */
 export function useDebouncedValue<T>(value: T, delayMs = 300): T {
   const [debounced, setDebounced] = useState(value);
 
