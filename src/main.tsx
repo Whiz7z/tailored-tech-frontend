@@ -4,7 +4,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import { SnackbarProvider } from "notistack";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
 import { router } from "./router";
 import { theme } from "./theme";
 

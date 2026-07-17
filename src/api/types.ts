@@ -15,9 +15,31 @@ export interface ApiErrorBody {
 
 export const DEFAULT_PAGE_SIZE = 5;
 
+export type SortOrder = "asc" | "desc";
+
+export type DataRoomSortBy = "name" | "createdAt" | "updatedAt";
+export type DataRoomHasContent = "all" | "withContent" | "empty";
+
+export type ContentsTypeFilter = "all" | "folder" | "file";
+export type ContentsSortBy = "name" | "updatedAt" | "size";
+
 export interface PaginationParams {
   page: number;
   pageSize: number;
+}
+
+export interface DataRoomListParams extends PaginationParams {
+  q: string;
+  sortBy: DataRoomSortBy;
+  sortOrder: SortOrder;
+  hasContent: DataRoomHasContent;
+}
+
+export interface ContentsListParams extends PaginationParams {
+  q: string;
+  type: ContentsTypeFilter;
+  sortBy: ContentsSortBy;
+  sortOrder: SortOrder;
 }
 
 export interface PaginationMeta {

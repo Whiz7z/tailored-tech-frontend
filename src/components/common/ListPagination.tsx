@@ -1,5 +1,5 @@
 import { Box, Pagination, Typography } from "@mui/material";
-import type { PaginationMeta } from "../api/types";
+import type { PaginationMeta } from "../../api/types";
 
 interface ListPaginationProps {
   pagination: PaginationMeta;

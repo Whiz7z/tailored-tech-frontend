@@ -1,6 +1,6 @@
 import { Alert, Box, Button, Typography } from "@mui/material";
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import { getErrorMessage } from "../api/client";
+import { getErrorMessage } from "../../api/client";
 
 interface Props {
   children: ReactNode;

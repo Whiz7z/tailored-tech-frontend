@@ -4,13 +4,18 @@ import {
   createRoute,
   createRouter,
 } from "@tanstack/react-router";
-import { AppShell } from "./components/AppShell";
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import { RouteError } from "./components/RouteError";
+import { AppShell } from "./components/common/AppShell";
+import { ErrorBoundary } from "./components/common/ErrorBoundary";
+import { RouteError } from "./components/common/RouteError";
 import { FileViewerPage } from "./pages/FileViewerPage";
 import { HomePage } from "./pages/HomePage";
 import { RoomPage } from "./pages/RoomPage";
-import { parsePageSearch } from "./utils/search";
+import {
+  DEFAULT_CONTENTS_SEARCH,
+  DEFAULT_HOME_SEARCH,
+  parseContentsSearch,
+  parseHomeSearch,
+} from "./utils/search";
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -26,29 +31,29 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  validateSearch: parsePageSearch,
+  validateSearch: parseHomeSearch,
   component: HomePage,
 });
 
 const roomRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/rooms/$roomId",
-  validateSearch: parsePageSearch,
+  validateSearch: parseContentsSearch,
   component: function RoomRoute() {
     const { roomId } = roomRoute.useParams();
-    const { page } = roomRoute.useSearch();
-    return <RoomPage roomId={roomId} page={page} />;
+    const search = roomRoute.useSearch();
+    return <RoomPage roomId={roomId} search={search} />;
   },
 });
 
 const folderRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/rooms/$roomId/folders/$folderId",
-  validateSearch: parsePageSearch,
+  validateSearch: parseContentsSearch,
   component: function FolderRoute() {
     const { roomId, folderId } = folderRoute.useParams();
-    const { page } = folderRoute.useSearch();
-    return <RoomPage roomId={roomId} folderId={folderId} page={page} />;
+    const search = folderRoute.useSearch();
+    return <RoomPage roomId={roomId} folderId={folderId} search={search} />;
   },
 });
 
@@ -86,3 +91,5 @@ declare module "@tanstack/react-router" {
     router: typeof router;
   }
 }
+
+export { DEFAULT_CONTENTS_SEARCH, DEFAULT_HOME_SEARCH };

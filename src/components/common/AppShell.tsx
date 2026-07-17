@@ -1,6 +1,7 @@
 import { AppBar, Box, Container, Toolbar } from "@mui/material";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { DEFAULT_HOME_SEARCH } from "../../utils/search";
 
 interface AppShellProps {
   children: ReactNode;
@@ -43,11 +44,11 @@ export function AppShell({ children }: AppShellProps) {
         }}
       >
         <Toolbar sx={{ gap: 2 }}>
-          <Link to="/" search={{ page: 1 }} style={brandLinkStyle}>
+          <Link to="/" search={DEFAULT_HOME_SEARCH} style={brandLinkStyle}>
             Acme Data Room
           </Link>
           <Box sx={{ color: "text.secondary", "&:hover": { color: "text.primary" } }}>
-            <Link to="/" search={{ page: 1 }} style={navLinkStyle}>
+            <Link to="/" search={DEFAULT_HOME_SEARCH} style={navLinkStyle}>
               All data rooms
             </Link>
           </Box>

@@ -5,12 +5,10 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import * as dataroomsApi from "../api/datarooms";
-import { createPaginationParams, queryKeys } from "../api/queryKeys";
-import { DEFAULT_PAGE_SIZE } from "../api/types";
+import { queryKeys } from "../api/queryKeys";
+import type { ContentsListParams, DataRoomListParams } from "../api/types";
 
-export function useDataRooms(page: number, pageSize = DEFAULT_PAGE_SIZE) {
-  const params = createPaginationParams(page, pageSize);
-
+export function useDataRooms(params: DataRoomListParams) {
   return useQuery({
     queryKey: queryKeys.datarooms.list(params),
     queryFn: () => dataroomsApi.listDataRooms(params),
@@ -63,11 +61,8 @@ export function useDeleteDataRoom() {
 export function useFolderContents(
   roomId: string,
   folderId: string | null,
-  page: number,
-  pageSize = DEFAULT_PAGE_SIZE,
+  params: ContentsListParams,
 ) {
-  const params = createPaginationParams(page, pageSize);
-
   return useQuery({
     queryKey: queryKeys.contents.list(roomId, folderId, params),
     queryFn: () => dataroomsApi.getContents(roomId, folderId, params),

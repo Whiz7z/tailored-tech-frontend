@@ -1,13 +1,18 @@
-import { ContentsBrowser } from "../components/ContentsBrowser";
+import { ContentsBrowser } from "../components/room/ContentsBrowser";
+import type { ContentsSearch } from "../utils/search";
 
 interface RoomPageProps {
   roomId: string;
   folderId?: string;
-  page: number;
+  search: ContentsSearch;
 }
 
-export function RoomPage({ roomId, folderId, page }: RoomPageProps) {
+export function RoomPage({ roomId, folderId, search }: RoomPageProps) {
   return (
-    <ContentsBrowser roomId={roomId} folderId={folderId ?? null} page={page} />
+    <ContentsBrowser
+      roomId={roomId}
+      folderId={folderId ?? null}
+      search={search}
+    />
   );
 }

@@ -1,16 +1,8 @@
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Typography,
-} from "@mui/material";
-import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Alert, Box, CircularProgress, Typography } from "@mui/material";
 import { getErrorMessage } from "../api/client";
-import { fetchFileContentBlob } from "../api/files";
-import { useFile } from "../hooks/useFiles";
+import { FileViewerNav } from "../components/file/FileViewerNav";
+import { PdfViewer } from "../components/file/PdfViewer";
+import { useFileViewer } from "../components/file/useFileViewer";
 import { formatBytes } from "../utils/format";
 
 interface FileViewerPageProps {
@@ -19,44 +11,8 @@ interface FileViewerPageProps {
 }
 
 export function FileViewerPage({ roomId, fileId }: FileViewerPageProps) {
-  const fileQuery = useFile(fileId);
-  const [blobUrl, setBlobUrl] = useState<string | null>(null);
-  const [contentError, setContentError] = useState<string | null>(null);
-  const [loadingContent, setLoadingContent] = useState(true);
-
-  useEffect(() => {
-    let objectUrl: string | null = null;
-    let cancelled = false;
-
-    async function loadContent() {
-      setLoadingContent(true);
-      setContentError(null);
-      setBlobUrl(null);
-      try {
-        const blob = await fetchFileContentBlob(fileId);
-        if (cancelled) return;
-        objectUrl = URL.createObjectURL(blob);
-        setBlobUrl(objectUrl);
-      } catch (error) {
-        if (!cancelled) {
-          setContentError(getErrorMessage(error, "Failed to load PDF"));
-        }
-      } finally {
-        if (!cancelled) {
-          setLoadingContent(false);
-        }
-      }
-    }
-
-    void loadContent();
-
-    return () => {
-      cancelled = true;
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
-  }, [fileId]);
+  const { fileQuery, blobUrl, contentError, loadingContent } =
+    useFileViewer(fileId);
 
   if (fileQuery.isLoading) {
     return (
@@ -78,65 +34,19 @@ export function FileViewerPage({ roomId, fileId }: FileViewerPageProps) {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
-        <Link to="/" search={{ page: 1 }} style={{ textDecoration: "none" }}>
-          <Button startIcon={<ArrowBackIcon />} size="small">
-            All data rooms
-          </Button>
-        </Link>
-        {file.folderId ? (
-          <Link
-            to="/rooms/$roomId/folders/$folderId"
-            params={{ roomId, folderId: file.folderId }}
-            search={{ page: 1 }}
-            style={{ textDecoration: "none" }}
-          >
-            <Button startIcon={<ArrowBackIcon />} size="small">
-              Back to folder
-            </Button>
-          </Link>
-        ) : (
-          <Link
-            to="/rooms/$roomId"
-            params={{ roomId }}
-            search={{ page: 1 }}
-            style={{ textDecoration: "none" }}
-          >
-            <Button startIcon={<ArrowBackIcon />} size="small">
-              Back to folder
-            </Button>
-          </Link>
-        )}
-      </Box>
+      <FileViewerNav roomId={roomId} folderId={file.folderId} />
 
       <Box sx={{ mb: 2 }}>
         <Typography variant="h4">{file.name}</Typography>
         <Typography color="text.secondary">{formatBytes(file.size)}</Typography>
       </Box>
 
-      {loadingContent && (
-        <Box sx={{ display: "grid", placeItems: "center", py: 10 }}>
-          <CircularProgress />
-        </Box>
-      )}
-
-      {contentError && <Alert severity="error">{contentError}</Alert>}
-
-      {blobUrl && !loadingContent && (
-        <Box
-          component="iframe"
-          title={file.name}
-          src={blobUrl}
-          sx={{
-            width: "100%",
-            height: "75vh",
-            border: "1px solid",
-            borderColor: "divider",
-            borderRadius: 2,
-            bgcolor: "background.paper",
-          }}
-        />
-      )}
+      <PdfViewer
+        title={file.name}
+        blobUrl={blobUrl}
+        loading={loadingContent}
+        error={contentError}
+      />
     </Box>
   );
 }

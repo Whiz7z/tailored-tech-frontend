@@ -1,11 +1,11 @@
-import type { PaginationParams } from "./types";
+import type { ContentsListParams, DataRoomListParams } from "./types";
 import { DEFAULT_PAGE_SIZE } from "./types";
 
 export const queryKeys = {
   datarooms: {
     all: ["datarooms"] as const,
     lists: () => [...queryKeys.datarooms.all, "list"] as const,
-    list: (params: PaginationParams) =>
+    list: (params: DataRoomListParams) =>
       [...queryKeys.datarooms.lists(), params] as const,
     details: () => [...queryKeys.datarooms.all, "detail"] as const,
     detail: (id: string) => [...queryKeys.datarooms.details(), id] as const,
@@ -16,7 +16,7 @@ export const queryKeys = {
     list: (
       roomId: string,
       folderId: string | null,
-      params: PaginationParams,
+      params: ContentsListParams,
     ) => [...queryKeys.contents.lists(), roomId, folderId, params] as const,
     byLocation: (roomId: string, folderId: string | null) =>
       [...queryKeys.contents.lists(), roomId, folderId] as const,
@@ -27,7 +27,7 @@ export const queryKeys = {
 export function createPaginationParams(
   page: number,
   pageSize: number = DEFAULT_PAGE_SIZE,
-): PaginationParams {
+) {
   return {
     page: Math.max(1, page),
     pageSize,

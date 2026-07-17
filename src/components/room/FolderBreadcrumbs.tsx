@@ -1,7 +1,11 @@
 import { Breadcrumbs, Typography } from "@mui/material";
 import { Link } from "@tanstack/react-router";
-import type { BreadcrumbItem } from "../api/types";
-import { ensureArray } from "../api/validate";
+import type { BreadcrumbItem } from "../../api/types";
+import { ensureArray } from "../../api/validate";
+import {
+  DEFAULT_CONTENTS_SEARCH,
+  DEFAULT_HOME_SEARCH,
+} from "../../utils/search";
 
 interface FolderBreadcrumbsProps {
   roomId: string;
@@ -18,7 +22,7 @@ export function FolderBreadcrumbs({ roomId, items }: FolderBreadcrumbsProps) {
 
   return (
     <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-      <Link to="/" search={{ page: 1 }} style={linkSx}>
+      <Link to="/" search={DEFAULT_HOME_SEARCH} style={linkSx}>
         Data Rooms
       </Link>
       {crumbs.map((item, index) => {
@@ -39,7 +43,7 @@ export function FolderBreadcrumbs({ roomId, items }: FolderBreadcrumbsProps) {
               key={key}
               to="/rooms/$roomId"
               params={{ roomId }}
-              search={{ page: 1 }}
+              search={DEFAULT_CONTENTS_SEARCH}
               style={linkSx}
             >
               {item.name}
@@ -60,7 +64,7 @@ export function FolderBreadcrumbs({ roomId, items }: FolderBreadcrumbsProps) {
             key={key}
             to="/rooms/$roomId/folders/$folderId"
             params={{ roomId, folderId: item.id }}
-            search={{ page: 1 }}
+            search={DEFAULT_CONTENTS_SEARCH}
             style={linkSx}
           >
             {item.name}

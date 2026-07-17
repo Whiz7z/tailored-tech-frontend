@@ -1,7 +1,8 @@
 import { Alert, Box, Button, Typography } from "@mui/material";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { getErrorMessage } from "../api/client";
+import { getErrorMessage } from "../../api/client";
+import { DEFAULT_HOME_SEARCH } from "../../utils/search";
 
 export function RouteError({ error, reset }: ErrorComponentProps) {
   return (
@@ -20,9 +21,9 @@ export function RouteError({ error, reset }: ErrorComponentProps) {
       >
         {getErrorMessage(error)}
       </Alert>
-      <Button component={Link} to="/" variant="outlined">
-        Go to data rooms
-      </Button>
+      <Link to="/" search={DEFAULT_HOME_SEARCH} style={{ textDecoration: "none" }}>
+        <Button variant="outlined">Go to data rooms</Button>
+      </Link>
     </Box>
   );
 }
