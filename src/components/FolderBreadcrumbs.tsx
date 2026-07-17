@@ -15,6 +15,9 @@ const linkSx = {
 export function FolderBreadcrumbs({ roomId, items }: FolderBreadcrumbsProps) {
   return (
     <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
+      <Link to="/" style={linkSx}>
+        Data Rooms
+      </Link>
       {items.map((item, index) => {
         const isLast = index === items.length - 1;
 

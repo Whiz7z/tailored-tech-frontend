@@ -26,7 +26,7 @@ export function AppShell({ children }: AppShellProps) {
           backdropFilter: "blur(10px)",
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ gap: 2 }}>
           <Typography
             component={Link}
             to="/"
@@ -41,6 +41,19 @@ export function AppShell({ children }: AppShellProps) {
           >
             Acme Data Room
           </Typography>
+          <Box
+            component={Link}
+            to="/"
+            sx={{
+              color: "text.secondary",
+              textDecoration: "none",
+              fontSize: 14,
+              fontWeight: 500,
+              "&:hover": { color: "text.primary" },
+            }}
+          >
+            All data rooms
+          </Box>
         </Toolbar>
       </AppBar>
       <Container maxWidth="lg" sx={{ py: { xs: 3, md: 5 } }}>

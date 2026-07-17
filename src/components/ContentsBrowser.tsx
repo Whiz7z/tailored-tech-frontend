@@ -1,3 +1,4 @@
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CreateNewFolderOutlinedIcon from "@mui/icons-material/CreateNewFolderOutlined";
 import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
@@ -131,6 +132,14 @@ export function ContentsBrowser({ roomId, folderId }: ContentsBrowserProps) {
 
   return (
     <Box>
+      <Box sx={{ mb: 1 }}>
+        <Link to="/" style={{ textDecoration: "none" }}>
+          <Button startIcon={<ArrowBackIcon />} size="small">
+            All data rooms
+          </Button>
+        </Link>
+      </Box>
+
       <FolderBreadcrumbs roomId={roomId} items={breadcrumb} />
 
       <Box
