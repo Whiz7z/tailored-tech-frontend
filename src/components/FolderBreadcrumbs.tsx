@@ -1,10 +1,11 @@
 import { Breadcrumbs, Typography } from "@mui/material";
 import { Link } from "@tanstack/react-router";
 import type { BreadcrumbItem } from "../api/types";
+import { ensureArray } from "../api/validate";
 
 interface FolderBreadcrumbsProps {
   roomId: string;
-  items: BreadcrumbItem[];
+  items: BreadcrumbItem[] | null | undefined;
 }
 
 const linkSx = {
@@ -13,17 +14,20 @@ const linkSx = {
 } as const;
 
 export function FolderBreadcrumbs({ roomId, items }: FolderBreadcrumbsProps) {
+  const crumbs = ensureArray(items);
+
   return (
     <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
       <Link to="/" style={linkSx}>
         Data Rooms
       </Link>
-      {items.map((item, index) => {
-        const isLast = index === items.length - 1;
+      {crumbs.map((item, index) => {
+        const isLast = index === crumbs.length - 1;
+        const key = `${item.type}-${item.id ?? "root"}-${index}`;
 
         if (isLast) {
           return (
-            <Typography key={`${item.type}-${item.id ?? "root"}`} color="text.primary">
+            <Typography key={key} color="text.primary">
               {item.name}
             </Typography>
           );
@@ -31,22 +35,25 @@ export function FolderBreadcrumbs({ roomId, items }: FolderBreadcrumbsProps) {
 
         if (item.type === "room") {
           return (
-            <Link
-              key="room"
-              to="/rooms/$roomId"
-              params={{ roomId }}
-              style={linkSx}
-            >
+            <Link key={key} to="/rooms/$roomId" params={{ roomId }} style={linkSx}>
               {item.name}
             </Link>
           );
         }
 
+        if (!item.id) {
+          return (
+            <Typography key={key} color="text.secondary">
+              {item.name}
+            </Typography>
+          );
+        }
+
         return (
           <Link
-            key={item.id}
+            key={key}
             to="/rooms/$roomId/folders/$folderId"
-            params={{ roomId, folderId: item.id! }}
+            params={{ roomId, folderId: item.id }}
             style={linkSx}
           >
             {item.name}

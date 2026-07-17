@@ -4,6 +4,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import { SnackbarProvider } from "notistack";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { router } from "./router";
 import { theme } from "./theme";
 
@@ -13,23 +14,35 @@ const queryClient = new QueryClient({
       staleTime: 30_000,
       retry: 1,
       refetchOnWindowFocus: false,
+      throwOnError: false,
+    },
+    mutations: {
+      throwOnError: false,
     },
   },
 });
 
-createRoot(document.getElementById("root")!).render(
+const rootElement = document.getElementById("root");
+
+if (!rootElement) {
+  throw new Error("Root element #root not found");
+}
+
+createRoot(rootElement).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <SnackbarProvider
-          maxSnack={3}
-          autoHideDuration={4000}
-          anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        >
-          <RouterProvider router={router} />
-        </SnackbarProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ErrorBoundary title="Application error">
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <SnackbarProvider
+            maxSnack={3}
+            autoHideDuration={4000}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          >
+            <RouterProvider router={router} />
+          </SnackbarProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </StrictMode>,
 );

@@ -76,7 +76,7 @@ export function HomePage() {
     return <Alert severity="error">{getErrorMessage(roomsQuery.error)}</Alert>;
   }
 
-  const rooms = roomsQuery.data ?? [];
+  const rooms = Array.isArray(roomsQuery.data) ? roomsQuery.data : [];
 
   return (
     <Box>

@@ -8,7 +8,8 @@ import {
 } from "@mui/material";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { api, getErrorMessage } from "../api/client";
+import { getErrorMessage } from "../api/client";
+import { fetchFileContentBlob } from "../api/files";
 import { useFile } from "../hooks/useFiles";
 import { formatBytes } from "../utils/format";
 
@@ -30,12 +31,11 @@ export function FileViewerPage({ roomId, fileId }: FileViewerPageProps) {
     async function loadContent() {
       setLoadingContent(true);
       setContentError(null);
+      setBlobUrl(null);
       try {
-        const response = await api.get(`/files/${fileId}/content`, {
-          responseType: "blob",
-        });
+        const blob = await fetchFileContentBlob(fileId);
         if (cancelled) return;
-        objectUrl = URL.createObjectURL(response.data);
+        objectUrl = URL.createObjectURL(blob);
         setBlobUrl(objectUrl);
       } catch (error) {
         if (!cancelled) {

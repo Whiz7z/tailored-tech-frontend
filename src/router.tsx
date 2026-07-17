@@ -5,6 +5,8 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import { AppShell } from "./components/AppShell";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { RouteError } from "./components/RouteError";
 import { FileViewerPage } from "./pages/FileViewerPage";
 import { HomePage } from "./pages/HomePage";
 import { RoomPage } from "./pages/RoomPage";
@@ -12,9 +14,12 @@ import { RoomPage } from "./pages/RoomPage";
 const rootRoute = createRootRoute({
   component: () => (
     <AppShell>
-      <Outlet />
+      <ErrorBoundary>
+        <Outlet />
+      </ErrorBoundary>
     </AppShell>
   ),
+  errorComponent: RouteError,
 });
 
 const indexRoute = createRoute({
@@ -57,7 +62,18 @@ const routeTree = rootRoute.addChildren([
   fileRoute,
 ]);
 
-export const router = createRouter({ routeTree });
+export const router = createRouter({
+  routeTree,
+  defaultErrorComponent: RouteError,
+  defaultNotFoundComponent: () => (
+    <RouteError
+      error={new Error("Page not found")}
+      reset={() => {
+        window.location.assign("/");
+      }}
+    />
+  ),
+});
 
 declare module "@tanstack/react-router" {
   interface Register {

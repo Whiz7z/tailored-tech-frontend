@@ -25,6 +25,7 @@ import { useSnackbar } from "notistack";
 import { useRef, useState, type ChangeEvent } from "react";
 import { ApiError, getErrorMessage } from "../api/client";
 import type { FileItem, Folder } from "../api/types";
+import { ensureArray } from "../api/validate";
 import { useFolderContents } from "../hooks/useDataRooms";
 import { useDeleteFile, useRenameFile, useUploadFile } from "../hooks/useFiles";
 import {
@@ -127,8 +128,19 @@ export function ContentsBrowser({ roomId, folderId }: ContentsBrowserProps) {
     );
   }
 
-  const { folders, files, breadcrumb } = contentsQuery.data!;
-  const isEmpty = folders.length === 0 && files.length === 0;
+  if (!contentsQuery.data) {
+    return (
+      <Alert severity="error">
+        Folder contents are unavailable. Check VITE_API_URL and try again.
+      </Alert>
+    );
+  }
+
+  const { folders, files, breadcrumb } = contentsQuery.data;
+  const safeFolders = ensureArray(folders);
+  const safeFiles = ensureArray(files);
+  const safeBreadcrumb = ensureArray(breadcrumb);
+  const isEmpty = safeFolders.length === 0 && safeFiles.length === 0;
 
   return (
     <Box>
@@ -140,7 +152,7 @@ export function ContentsBrowser({ roomId, folderId }: ContentsBrowserProps) {
         </Link>
       </Box>
 
-      <FolderBreadcrumbs roomId={roomId} items={breadcrumb} />
+      <FolderBreadcrumbs roomId={roomId} items={safeBreadcrumb} />
 
       <Box
         sx={{
@@ -154,7 +166,7 @@ export function ContentsBrowser({ roomId, folderId }: ContentsBrowserProps) {
       >
         <Box>
           <Typography variant="h4" sx={{ mb: 0.5 }}>
-            {breadcrumb[breadcrumb.length - 1]?.name ?? "Contents"}
+            {safeBreadcrumb[safeBreadcrumb.length - 1]?.name ?? "Contents"}
           </Typography>
           <Typography color="text.secondary">
             Folders and PDF documents in this location
@@ -226,7 +238,7 @@ export function ContentsBrowser({ roomId, folderId }: ContentsBrowserProps) {
               </TableRow>
             </TableHead>
             <TableBody>
-              {folders.map((folder) => (
+              {safeFolders.map((folder) => (
                 <TableRow key={folder.id} hover>
                   <TableCell>
                     <Link
@@ -265,7 +277,7 @@ export function ContentsBrowser({ roomId, folderId }: ContentsBrowserProps) {
                   </TableCell>
                 </TableRow>
               ))}
-              {files.map((file) => (
+              {safeFiles.map((file) => (
                 <TableRow key={file.id} hover>
                   <TableCell>
                     <Link
